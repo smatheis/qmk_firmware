@@ -22,11 +22,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define QUICK_TAP_TERM 0
 #define TAPPING_TERM 100
 
-#define SPLIT_LAYER_STATE_ENABLE
-#define SPLIT_LED_STATE_ENABLE
+// #define SPLIT_LAYER_STATE_ENABLE
+// #define SPLIT_LED_STATE_ENABLE
 
 /* Select hand configuration */
-#define MASTER_LEFT
+// #define MASTER_LEFT
 // #define MASTER_RIGHT
 // #define EE_HANDS
 

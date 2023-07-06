@@ -1,0 +1,20 @@
+#pragma once
+
+// Most tactile encoders have detents every 4 stages
+// #define ENCODER_RESOLUTION 4
+#undef TAPPING_TOGGLE
+
+#define ORYX_CONFIGURATOR
+#define PLANCK_EZ_USER_LEDS
+#define USB_MAX_POWER_CONSUMPTION 100
+#define TAPPING_TERM 200
+#define TAPPING_TOGGLE 3
+#define DOUBLE_TAP_SHIFT_TURNS_ON_CAPS_WORD
+#define COMBO_COUNT 20
+// #define PERMISSIVE_HOLD
+// #define IGNORE_MOD_TAP_INTERRUPT
+// #define TAPPING_FORCE_HOLD
+// #define AUTO_SHIFT_TIMEOUT 150
+// #define NO_AUTO_SHIFT_SPECIAL
+// #define NO_AUTO_SHIFT_NUMERIC
+// #define RETRO_SHIFT
