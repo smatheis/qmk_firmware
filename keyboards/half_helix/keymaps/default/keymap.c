@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include QMK_KEYBOARD_H
+#include "raw_hid.h"
+#include "sendstring_german.h"
 
 /*
 * define layers: left hand, right hand with _ALT
@@ -11,37 +13,39 @@
 */
 
 enum helix_layers {
-    _BASE,
-    _LOWER,
-    _RAISE,
-    _ADJUST,
-    _CODE,
-    _MOUSE,
-    _NAVI,
-    _QWERTZ,
+	_BASE,
+	_LOWER,
+	_RAISE,
+	_ADJUST,
+	_CODE,
+	_MOUSE,
+	_NAVI,
+	_QWERTZ,
 
-    _BASE_ALT,
-    _LOWER_ALT,
-    _RAISE_ALT,
-    _ADJUST_ALT,
-    _CODE_ALT,
-    _MOUSE_ALT,
-    _NAVI_ALT,
-    _QWERTZ_ALT,
+	_BASE_ALT,
+	_LOWER_ALT,
+	_RAISE_ALT,
+	_ADJUST_ALT,
+	_CODE_ALT,
+	_MOUSE_ALT,
+	_NAVI_ALT,
+	_QWERTZ_ALT,
 };
 
 enum helix_keycodes {
-    BASE_MAC = SAFE_RANGE,
-    BASE_WIN,
-    BASE_LEFT,
-    BASE_RIGHT,
-    /* Swap Hands keycode */
-    SWAP_HANDS,
-    /* Tab switching keys */
-    CC_GUI_TAB,
-    CC_SGU_TAB,
-    CC_CTL_TAB,
-    CC_SCT_TAB,
+	BASE_MAC = SAFE_RANGE,
+	BASE_WIN,
+	BASE_LEFT,
+	BASE_RIGHT,
+	/* Swap Hands keycode */
+	SWAP_HANDS,
+	/* Tab switching keys */
+	CC_GUI_TAB,
+	CC_SGU_TAB,
+	CC_CTL_TAB,
+	CC_SCT_TAB,
+	MS_SCRL,
+	MS_DPI,
 };
 
 /** hold ctl / gui while true */
@@ -123,8 +127,8 @@ int current_layer = _BASE;
 #define CC_T_CTL CTL_T(KC_T)
 #define CC_M_CTL CTL_T(KC_M)
 #define CC_N_CTL CTL_T(KC_N)
-#define CC_P_MSG LT(_MOU, KC_P)
-#define CC_COMM_MSG LT(_MOUSEGIT, KC_COMM)
+#define CC_P_MSG LT(_MOUSE, KC_P)
+#define CC_COMM_MSG LT(_MOUSE, KC_COMM)
 #define CC_G_CDE LT(_CODE, KC_G)
 #define CC_W_CDE LT(_CODE, KC_W)
 #define CC_SPC_NAV LT(_NAVI, KC_SPACE)
@@ -155,225 +159,158 @@ int current_layer = _BASE;
 #define CC_MSE_ENT LT(0, KC_L)
 
 /* Combos */
-const uint16_t PROGMEM C_SCROLL[] =  {KC_BTN1,  CC_MSE_ENT, COMBO_END};
-const uint16_t PROGMEM C_DPI[] =     {KC_LEFT,  KC_RIGHT,   COMBO_END};
+const uint16_t PROGMEM C_SCROLL[] = {KC_BTN1, CC_MSE_ENT, COMBO_END};
+const uint16_t PROGMEM C_DPI[]    = {KC_LEFT, KC_RIGHT, COMBO_END};
 
-const uint16_t PROGMEM C_AE[] =      {CC_T_CTL, CC_M_CTL,   COMBO_END};
-const uint16_t PROGMEM C_OE[] =      {CC_I_ALT, CC_U_ALT,   COMBO_END};
-const uint16_t PROGMEM C_UE[] =      {CC_C_SFT, CC_F_SFT,   COMBO_END};
-const uint16_t PROGMEM C_SS[] =      {KC_D,     KC_V,       COMBO_END};
+const uint16_t PROGMEM C_AE[] = {CC_T_CTL, CC_M_CTL, COMBO_END};
+const uint16_t PROGMEM C_OE[] = {CC_I_ALT, CC_U_ALT, COMBO_END};
+const uint16_t PROGMEM C_UE[] = {CC_C_SFT, CC_F_SFT, COMBO_END};
+const uint16_t PROGMEM C_SS[] = {KC_D, KC_V, COMBO_END};
 
-const uint16_t PROGMEM C_ESC[] =     {KC_TAB,   CC_F_SFT,   CC_U_ALT, CC_M_CTL, COMBO_END};
+const uint16_t PROGMEM C_ESC[] = {KC_TAB, CC_F_SFT, CC_U_ALT, CC_M_CTL, COMBO_END};
 
-const uint16_t PROGMEM C_HEX_A[] =   {KC_1,     KC_2,       KC_3,     COMBO_END};
-const uint16_t PROGMEM C_HEX_B[] =   {KC_2,     KC_3,       KC_TAB,   COMBO_END};
-const uint16_t PROGMEM C_HEX_C[] =   {KC_4,     KC_5,       KC_6,     COMBO_END};
-const uint16_t PROGMEM C_HEX_D[] =   {KC_5,     KC_6,       KC_0,     COMBO_END};
-const uint16_t PROGMEM C_HEX_E[] =   {KC_7,     KC_8,       KC_9,     COMBO_END};
-const uint16_t PROGMEM C_HEX_F[] =   {KC_8,     KC_9,      CC_SMCOLON,COMBO_END};
-const uint16_t PROGMEM C_HEX_X[] =   {CC_COLON, KC_7,       KC_8,     COMBO_END};
+const uint16_t PROGMEM C_HEX_A[] = {KC_1, KC_2, KC_3, COMBO_END};
+const uint16_t PROGMEM C_HEX_B[] = {KC_2, KC_3, KC_TAB, COMBO_END};
+const uint16_t PROGMEM C_HEX_C[] = {KC_4, KC_5, KC_6, COMBO_END};
+const uint16_t PROGMEM C_HEX_D[] = {KC_5, KC_6, KC_0, COMBO_END};
+const uint16_t PROGMEM C_HEX_E[] = {KC_7, KC_8, KC_9, COMBO_END};
+const uint16_t PROGMEM C_HEX_F[] = {KC_8, KC_9, CC_SMCOLON, COMBO_END};
+const uint16_t PROGMEM C_HEX_X[] = {CC_COLON, KC_7, KC_8, COMBO_END};
 
 combo_t key_combos[] = {
-  COMBO(C_SCROLL, MS_SCRL),
-  COMBO(C_DPI,    MS_DPI),
+    COMBO(C_SCROLL, MS_SCRL),
+	COMBO(C_DPI, 	MS_DPI),
 
-  COMBO(C_AE, KC_QUOT),
-  COMBO(C_OE, KC_SCLN),
-  COMBO(C_UE, KC_LBRC),
-  COMBO(C_SS, KC_MINS),
+    COMBO(C_AE,		KC_QUOT),
+	COMBO(C_OE, 	KC_SCLN),
+	COMBO(C_UE, 	KC_LBRC),
+	COMBO(C_SS, 	KC_MINS),
 
-  COMBO(C_ESC, KC_ESC),
-  
-  COMBO(C_HEX_A, KC_A),
-  COMBO(C_HEX_B, KC_B),
-  COMBO(C_HEX_C, KC_C),
-  COMBO(C_HEX_D, KC_D),
-  COMBO(C_HEX_E, KC_E),
-  COMBO(C_HEX_F, KC_F),
-  COMBO(C_HEX_X, KC_X),
+    COMBO(C_ESC, 	KC_ESC),
+
+    COMBO(C_HEX_A, 	KC_A),
+	COMBO(C_HEX_B, 	KC_B),
+	COMBO(C_HEX_C, 	KC_C),
+	COMBO(C_HEX_D, 	KC_D),
+	COMBO(C_HEX_E, 	KC_E),
+	COMBO(C_HEX_F, 	KC_F),
+	COMBO(C_HEX_X, 	KC_X),
 };
 
-
-#define ___________________NOTHING___________________ XXXXXXX,    XXXXXXX,    XXXXXXX,    XXXXXXX,    XXXXXXX,    XXXXXXX
-
-#define ___________________BASE_L1___________________ KC_TAB,     CC_F_SFT,   CC_U_ALT,   CC_M_CTL,   KC_V,       CC_SPTLGHT
-#define ___________________BASE_L2___________________ CC_A_GUI,   CC_C_SFT,   CC_I_ALT,   CC_T_CTL,   KC_D,       CC_UNDO
-#define ___________________BASE_L3___________________ RAISE,      CC_P_MSG,   KC_Z,       CC_G_CDE,   KC_J,       CC_REDO
-#define ___________________BASE_L4___________________ SWAP_HANDS, CC_CLOSE,   CD_COMMAND, LOWER,      KC_E,       CC_SPC_NAV
-#define ___________________BASE_R1___________________ KC_BSPC,    KC_Q,       KC_L,       KC_B,       KC_DOT,     KC_Y
-#define ___________________BASE_R2___________________ KC_UP,      KC_R,       CC_N_CTL,   CC_H_ALT,   CC_O_SFT,   CC_S_GUI
-#define ___________________BASE_R3___________________ KC_DOWN,    KC_X,       CC_W_CDE,   KC_K,       CC_COMM_MSG,CC_MSE_ENT
-#define ___________________BASE_R4___________________ CC_SPC_NAV, OSM(MOD_LSFT),RAISE,    KC_LEFT,    KC_RIGHT,   KC_BTN1
-
-#define __________________LOWER_L1___________________ CC_ATSIGN,  CC_UNDRSCR, CC_LSBRC,   CC_RSBRC,   CC_GRAVE,   CC_CIRCLE
-#define __________________LOWER_L2___________________ CC_BSLASH,  CC_SLSH,    CC_LCBRC,   CC_RCBRC,   CC_ASTERISK,CC_EURO
-#define __________________LOWER_L3___________________ CC_HSH_RSE, CC_DOLLAR,  CC_PIPE,    CC_TILDE,   CC_BTICK,   CC_TICK
-#define __________________LOWER_L4___________________ _______,    XXXXXXX,    XXXXXXX,    _______,    XXXXXXX,    KC_SPACE
-#define __________________LOWER_R1___________________ _______,    CC_EXCL,    CC_LPBRC,   CC_RPBRC,   CC_EQUAL,   CC_AMPER
-#define __________________LOWER_R2___________________ _______,    CC_QUESTNM, CC_LRBRC,   CC_RRBRC,   CC_DASH,    CC_COLON
-#define __________________LOWER_R3___________________ _______,    CC_PLUS,    CC_PERCENT, CC_DQUOT,   CC_QUOT,    CC_SMCOLON
-#define __________________LOWER_R4___________________ KC_SPACE,   XXXXXXX,    _______,    _______,    _______,    _______
-
-#define __________________RAISE_L1___________________ KC_PGUP,    KC_BSPC,    KC_UP,      KC_DEL,     KC_PGDN,    _______
-#define __________________RAISE_L2___________________ CC_HOME,    KC_LEFT,    KC_DOWN,    KC_RGHT,    CC_END,     _______
-#define __________________RAISE_L3___________________ _______,    CC_CUT,     CC_COPY,    CC_PASTE,   KC_ENTER,   _______
-#define __________________RAISE_L4___________________ _______,    KC_TAB,     CC_SEL_ALL, _______,    XXXXXXX,    KC_SPACE
-#define __________________RAISE_R1___________________ _______,    CC_DASH,    KC_1,       KC_2,       KC_3,       KC_TAB
-#define __________________RAISE_R2___________________ CC_ASTERISK,CC_PLUS,    KC_4,       KC_5,       KC_6,       KC_0
-#define __________________RAISE_R3___________________ CC_SLSH,    CC_COLON,   KC_7,       KC_8,       KC_9,       CC_SMCOLON
-#define __________________RAISE_R4___________________ KC_SPACE,   KC_ENTER,   _______,    KC_DOT,     KC_COMM,    _______
-
-#define _________________ADJUST_L1___________________ RGB_TOG,    RGB_VAI,    KC_MNXT,    KC_VOLU,    KC_BRIU,    BASE_MAC
-#define _________________ADJUST_L2___________________ RGB_MOD,    RSW_OFF,    KC_MPLY,    KC_MUTE,    KC_BRID,    QWERTZ
-#define _________________ADJUST_L3___________________ _______,    RGB_VAD,    KC_MPRV,    KC_VOLD,    XXXXXXX,    BASE_WIN
-#define _________________ADJUST_L4___________________ _______,    XXXXXXX,    XXXXXXX,    _______,    LED_LEVEL,  TIMER
-#define _________________ADJUST_R1___________________ XXXXXXX,    KC_PSCR,    KC_F1,      KC_F2,      KC_F3,      KC_F4
-#define _________________ADJUST_R2___________________ DM_PLY1,    KC_NUM_LOCK,KC_F5,      KC_F6,      KC_F7,      KC_F8
-#define _________________ADJUST_R3___________________ DM_PLY2,    XXXXXXX,    KC_F9,      KC_F10,     KC_F11,     KC_F12
-#define _________________ADJUST_R4___________________ TIMER,      KC_CAPS,    _______,    XXXXXXX,    XXXXXXX,    _______
-
-#define ___________________CODE_L1___________________ CD_FLIP,    CD_MV_UP,   CD_UP,      CD_MV_DOWN, XXXXXXX,    XXXXXXX
-#define ___________________CODE_L2___________________ CD_MV_LEFT, CD_LEFT,    CD_DOWN,    CD_RIGHT,   CD_MV_RGHT, XXXXXXX
-#define ___________________CODE_L3___________________ CD_SEARCH,  CD_EXPLRER, CD_COMMENT, _______,    CD_SVNOFMT, XXXXXXX
-#define ___________________CODE_L4___________________ _______,    XXXXXXX,    XXXXXXX,    S(A(KC_F)), CD_SAVE,    XXXXXXX
-#define ___________________CODE_R1___________________ XXXXXXX,    XXXXXXX,    XXXXXXX,    CD_CSR_UP,  A(KC_F12),  XXXXXXX
-#define ___________________CODE_R2___________________ XXXXXXX,    CD_LIGHT,   CD_BACK,    CD_CSR_DN,  CD_FORWARD, CD_RENAME
-#define ___________________CODE_R3___________________ XXXXXXX,    CD_DARK,    _______,    A(KC_Z),    KC_F12,     CD_CH_ALL
-#define ___________________CODE_R4___________________ XXXXXXX,    C(KC_SCLN), XXXXXXX,    XXXXXXX,    XXXXXXX,    _______
-
-#define __________________MOUSE_L1___________________ XXXXXXX,    XXXXXXX,    KC_MS_UP,    XXXXXXX,   XXXXXXX,    XXXXXXX
-#define __________________MOUSE_L2___________________ KC_LCTL,    KC_MS_LEFT, KC_MS_DOWN,  KC_MS_RIGHT,KC_WH_U,   XXXXXXX
-#define __________________MOUSE_L3___________________ KC_LGUI,    _______,    KC_WH_L,     KC_WH_R,   KC_WH_D,    XXXXXXX
-#define __________________MOUSE_L4___________________ _______,    _______,    MS_SCRL,     KC_BTN2,   KC_BTN1,    _______
-#define __________________MOUSE_R1___________________ XXXXXXX,    KC_Q,       S(KC_J),    S(KC_K),    XXXXXXX,    XXXXXXX
-#define __________________MOUSE_R2___________________ XXXXXXX,    KC_E,       KC_A,       KC_D,       XXXXXXX,    XXXXXXX
-#define __________________MOUSE_R3___________________ XXXXXXX,    KC_S,       KC_Z,       KC_N,       _______,    _______
-#define __________________MOUSE_R4___________________ _______,    KC_ENTER,   C(KC_C),    C(KC_X),    XXXXXXX,    _______
-
-#define ___________________NAVI_L1___________________ XXXXXXX,    XXXXXXX,    CC_SGU_TAB, CC_GUI_TAB, MEH(KC_A),  MEH(KC_B)
-#define ___________________NAVI_L2___________________ XXXXXXX,    C(KC_SPC),  CC_SCT_TAB, CC_CTL_TAB, MEH(KC_E),  MEH(KC_F)
-#define ___________________NAVI_L3___________________ XXXXXXX,    XXXXXXX,    CC_FULLNXT, CC_CLOSE,   MEH(KC_I),  MEH(KC_J)
-#define ___________________NAVI_L4___________________ _______,    _______,    XXXXXXX,    MEH(KC_O),  MEH(KC_M),  _______
-#define ___________________NAVI_R1___________________ MEH(KC_C),  MEH(KC_D),  HYPR(KC_I), HYPR(KC_J), HYPR(KC_K), HYPR(KC_L)
-#define ___________________NAVI_R2___________________ MEH(KC_G),  MEH(KC_H),  HYPR(KC_A), HYPR(KC_B), HYPR(KC_C), HYPR(KC_D)
-#define ___________________NAVI_R3___________________ MEH(KC_K),  MEH(KC_L),  HYPR(KC_E), HYPR(KC_F), HYPR(KC_G), HYPR(KC_H)
-#define ___________________NAVI_R4___________________ _______,    MEH(KC_N),  MEH(KC_P),  XXXXXXX,    XXXXXXX,    _______
-
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
-    [_BASE] = LAYOUT(
-        ___________________NOTHING___________________,
-        ___________________BASE_L1___________________,
-        ___________________BASE_L2___________________,
-        ___________________BASE_L3___________________, BASE_LEFT,
-        ___________________BASE_L4___________________, BASE_RIGHT
+	[_BASE]   = LAYOUT(
+		KC_TAB, CC_F_SFT, CC_U_ALT, CC_M_CTL, KC_V, CC_SPTLGHT,
+		KC_TAB, CC_F_SFT, CC_U_ALT, CC_M_CTL, KC_V, CC_SPTLGHT,
+		CC_A_GUI, CC_C_SFT, CC_I_ALT, CC_T_CTL, KC_D, CC_UNDO,
+		RAISE, CC_P_MSG, KC_Z, CC_G_CDE, KC_J, CC_REDO, BASE_LEFT,
+		SWAP_HANDS, CC_CLOSE, CD_COMMAND, LOWER, KC_E, CC_SPC_NAV, QWERTZ
+	),
+    [_LOWER]  = LAYOUT(
+        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+        CC_ATSIGN, CC_UNDRSCR, CC_LSBRC, CC_RSBRC, CC_GRAVE, CC_CIRCLE,
+        CC_BSLASH, CC_SLSH, CC_LCBRC, CC_RCBRC, CC_ASTERISK, CC_EURO,
+        CC_HSH_RSE, CC_DOLLAR, CC_PIPE, CC_TILDE, CC_BTICK, CC_TICK, BASE_LEFT,
+        _______, XXXXXXX, XXXXXXX, _______, XXXXXXX, KC_SPACE, BASE_RIGHT
     ),
-    [_LOWER] = LAYOUT(
-        ___________________NOTHING___________________,
-        __________________LOWER_L1___________________,
-        __________________LOWER_L2___________________,
-        __________________LOWER_L3___________________, BASE_LEFT,
-        __________________LOWER_L4___________________, BASE_RIGHT
+	[_RAISE]  = LAYOUT(
+        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+        KC_PGUP, KC_BSPC, KC_UP, KC_DEL, KC_PGDN, _______,
+        CC_HOME, KC_LEFT, KC_DOWN, KC_RGHT, CC_END, _______,
+        _______, CC_CUT, CC_COPY, CC_PASTE, KC_ENTER, _______, BASE_LEFT,
+        _______, KC_TAB, CC_SEL_ALL, _______, XXXXXXX, KC_SPACE, BASE_RIGHT
     ),
-    [_RAISE] = LAYOUT(
-        ___________________NOTHING___________________,
-        __________________RAISE_L1___________________,
-        __________________RAISE_L2___________________,
-        __________________RAISE_L3___________________, BASE_LEFT,
-        __________________RAISE_L4___________________, BASE_RIGHT
+	[_ADJUST] = LAYOUT(
+        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+        RGB_TOG, RGB_VAI, KC_MNXT, KC_VOLU, KC_BRIU, BASE_MAC,
+        RGB_MOD, XXXXXXX, KC_MPLY, KC_MUTE, KC_BRID, QWERTZ,
+        _______, RGB_VAD, KC_MPRV, KC_VOLD, XXXXXXX, BASE_WIN, BASE_LEFT,
+        _______, XXXXXXX, XXXXXXX, _______, XXXXXXX, XXXXXXX, BASE_RIGHT
     ),
-    [_ADJUST] = LAYOUT(
-        ___________________NOTHING___________________,
-        _________________ADJUST_L1___________________,
-        _________________ADJUST_L2___________________,
-        _________________ADJUST_L3___________________, BASE_LEFT,
-        _________________ADJUST_L4___________________, BASE_RIGHT
+	[_CODE]   = LAYOUT(
+        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+        CD_FLIP, CD_MV_UP, CD_UP, CD_MV_DOWN, XXXXXXX, XXXXXXX,
+        CD_MV_LEFT, CD_LEFT, CD_DOWN, CD_RIGHT, CD_MV_RGHT, XXXXXXX,
+        CD_SEARCH, CD_EXPLRER, CD_COMMENT, _______, CD_SVNOFMT, XXXXXXX, BASE_LEFT,
+        _______, XXXXXXX, XXXXXXX, S(A(KC_F)), CD_SAVE, XXXXXXX, BASE_RIGHT
     ),
-    [_CODE] = LAYOUT(
-        ___________________NOTHING___________________,
-        ___________________CODE_L1___________________,
-        ___________________CODE_L2___________________,
-        ___________________CODE_L3___________________, BASE_LEFT,
-        ___________________CODE_L4___________________, BASE_RIGHT
+	[_MOUSE]  = LAYOUT(
+        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+        XXXXXXX, XXXXXXX, KC_MS_UP, XXXXXXX, XXXXXXX, XXXXXXX,
+        KC_LCTL, KC_MS_LEFT, KC_MS_DOWN, KC_MS_RIGHT, KC_WH_U, XXXXXXX,
+        KC_LGUI, _______, KC_WH_L, KC_WH_R, KC_WH_D, XXXXXXX, BASE_LEFT,
+        _______, _______, MS_SCRL, KC_BTN2, KC_BTN1, _______, BASE_RIGHT
     ),
-    [_MOUSE] = LAYOUT(
-        ___________________NOTHING___________________,
-        __________________MOUSE_L1___________________,
-        __________________MOUSE_L2___________________,
-        __________________MOUSE_L3___________________, BASE_LEFT,
-        __________________MOUSE_L4___________________, BASE_RIGHT
+	[_NAVI]   = LAYOUT(
+        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+        XXXXXXX, XXXXXXX, CC_SGU_TAB, CC_GUI_TAB, MEH(KC_A), MEH(KC_B),
+        XXXXXXX, C(KC_SPC), CC_SCT_TAB, CC_CTL_TAB, MEH(KC_E), MEH(KC_F),
+        XXXXXXX, XXXXXXX, CC_FULLNXT, CC_CLOSE, MEH(KC_I), MEH(KC_J), BASE_LEFT,
+        _______, _______, XXXXXXX, MEH(KC_O), MEH(KC_M), _______, BASE_RIGHT
     ),
-    [_NAVI] = LAYOUT(
-        ___________________NOTHING___________________,
-        ___________________NAVI_L1___________________,
-        ___________________NAVI_L2___________________,
-        ___________________NAVI_L3___________________, BASE_LEFT,
-        ___________________NAVI_L4___________________, BASE_RIGHT
+	[_QWERTZ] = LAYOUT(
+        KC_ESC, KC_1, KC_2, KC_3, KC_4, KC_5,
+        KC_TAB, KC_Q, KC_W, KC_E, KC_R, KC_T,
+        KC_LCTL, KC_A, KC_S, KC_D, KC_F, KC_G,
+        KC_LSFT, KC_Z, KC_X, KC_C, KC_V, KC_B, KC_BACKSPACE,
+        SWAP_HANDS, KC_LCTL, KC_LALT, KC_LGUI, KC_SPACE, KC_SPACE, QWERTZ
     ),
-    [_QWERTZ] = LAYOUT(
-        KC_ESC,  KC_1,   KC_2,   KC_3,   KC_4,   KC_5,  
-        KC_TAB,  KC_Q,   KC_W,   KC_E,   KC_R,   KC_T,  
-        KC_LCTL, KC_A,   KC_S,   KC_D,   KC_F,   KC_G,
-        KC_LSFT, KC_Z,   KC_X,   KC_C,   KC_V,   KC_B,   BASE_LEFT,
-        SWAP_HANDS,KC_LCTL,KC_ALT,KC_GUI,KC_SPACE,KC_SPACE,BASE_RIGHT
-    )
 
-    [_BASE_ALT] = LAYOUT(
-        ___________________NOTHING___________________,
-        ___________________BASE_R1___________________,
-        ___________________BASE_R2___________________,
-        ___________________BASE_R3___________________, BASE_LEFT,
-        ___________________BASE_R4___________________, BASE_RIGHT
+	[_BASE_ALT]   = LAYOUT(
+        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+        KC_BSPC, KC_Q, KC_L, KC_B, KC_DOT, KC_Y,
+        KC_UP, KC_R, CC_N_CTL, CC_H_ALT, CC_O_SFT, CC_S_GUI,
+        KC_DOWN, KC_X, CC_W_CDE, KC_K, CC_COMM_MSG, CC_MSE_ENT, BASE_LEFT,
+        CC_SPC_NAV, OSM(MOD_LSFT), RAISE, KC_LEFT, KC_RIGHT, KC_BTN1, BASE_RIGHT
     ),
-    [_LOWER_ALT] = LAYOUT(
-        ___________________NOTHING___________________,
-        __________________LOWER_R1___________________,
-        __________________LOWER_R2___________________,
-        __________________LOWER_R3___________________, BASE_LEFT,
-        __________________LOWER_R4___________________, BASE_RIGHT
+	[_LOWER_ALT]  = LAYOUT(
+        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+        _______, CC_EXCL, CC_LPBRC, CC_RPBRC, CC_EQUAL, CC_AMPER,
+        _______, CC_QUESTNM, CC_LRBRC, CC_RRBRC, CC_DASH, CC_COLON,
+        _______, CC_PLUS, CC_PERCENT, CC_DQUOT, CC_QUOT, CC_SMCOLON, BASE_LEFT,
+        KC_SPACE, XXXXXXX, _______, _______, _______, _______, BASE_RIGHT
     ),
-    [_RAISE_ALT] = LAYOUT(
-        ___________________NOTHING___________________,
-        __________________RAISE_R1___________________,
-        __________________RAISE_R2___________________,
-        __________________RAISE_R3___________________, BASE_LEFT,
-        __________________RAISE_R4___________________, BASE_RIGHT
+	[_RAISE_ALT]  = LAYOUT(
+        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+        _______, CC_DASH, KC_1, KC_2, KC_3, KC_TAB,
+        CC_ASTERISK, CC_PLUS, KC_4, KC_5, KC_6, KC_0,
+        CC_SLSH, CC_COLON, KC_7, KC_8, KC_9, CC_SMCOLON, BASE_LEFT,
+        KC_SPACE, KC_ENTER, _______, KC_DOT, KC_COMM, _______, BASE_RIGHT
     ),
-    [_ADJUST_ALT] = LAYOUT(
-        ___________________NOTHING___________________,
-        _________________ADJUST_R1___________________,
-        _________________ADJUST_R2___________________,
-        _________________ADJUST_R3___________________, BASE_LEFT,
-        _________________ADJUST_R4___________________, BASE_RIGHT
+	[_ADJUST_ALT] = LAYOUT(
+        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+        XXXXXXX, KC_PSCR, KC_F1, KC_F2, KC_F3, KC_F4,
+        DM_PLY1, KC_NUM_LOCK, KC_F5, KC_F6, KC_F7, KC_F8,
+        DM_PLY2, XXXXXXX, KC_F9, KC_F10, KC_F11, KC_F12, BASE_LEFT,
+        XXXXXXX, KC_CAPS, _______, XXXXXXX, XXXXXXX, _______, BASE_RIGHT
     ),
-    [_CODE_ALT] = LAYOUT(
-        ___________________NOTHING___________________,
-        ___________________CODE_R1___________________,
-        ___________________CODE_R2___________________,
-        ___________________CODE_R3___________________, BASE_LEFT,
-        ___________________CODE_R4___________________, BASE_RIGHT
+	[_CODE_ALT]   = LAYOUT(
+        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+        XXXXXXX, XXXXXXX, XXXXXXX, CD_CSR_UP, A(KC_F12), XXXXXXX,
+        XXXXXXX, CD_LIGHT, CD_BACK, CD_CSR_DN, CD_FORWARD, CD_RENAME,
+        XXXXXXX, CD_DARK, _______, A(KC_Z), KC_F12, CD_CH_ALL, BASE_LEFT,
+        XXXXXXX, C(KC_SCLN), XXXXXXX, XXXXXXX, XXXXXXX, _______, BASE_RIGHT
     ),
-    [_MOUSE_ALT] = LAYOUT(
-        ___________________NOTHING___________________,
-        __________________MOUSE_R1___________________,
-        __________________MOUSE_R2___________________,
-        __________________MOUSE_R3___________________, BASE_LEFT,
-        __________________MOUSE_R4___________________, BASE_RIGHT
+	[_MOUSE_ALT]  = LAYOUT(
+        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+        XXXXXXX, KC_Q, S(KC_J), S(KC_K), XXXXXXX, XXXXXXX,
+        XXXXXXX, KC_E, KC_A, KC_D, XXXXXXX, XXXXXXX,
+        XXXXXXX, KC_S, KC_Z, KC_N, _______, _______, BASE_LEFT,
+        _______, KC_ENTER, C(KC_C), C(KC_X), XXXXXXX, _______, BASE_RIGHT
     ),
-    [_NAVI_ALT] = LAYOUT(
-        ___________________NOTHING___________________,
-        ___________________NAVI_R1___________________,
-        ___________________NAVI_R2___________________,
-        ___________________NAVI_R3___________________, BASE_LEFT,
-        ___________________NAVI_R4___________________, BASE_RIGHT
+	[_NAVI_ALT]   = LAYOUT(
+        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+        MEH(KC_C), MEH(KC_D), HYPR(KC_I), HYPR(KC_J), HYPR(KC_K), HYPR(KC_L),
+        MEH(KC_G), MEH(KC_H), HYPR(KC_A), HYPR(KC_B), HYPR(KC_C), HYPR(KC_D),
+        MEH(KC_K), MEH(KC_L), HYPR(KC_E), HYPR(KC_F), HYPR(KC_G), HYPR(KC_H), BASE_LEFT,
+        _______, MEH(KC_N), MEH(KC_P), XXXXXXX, XXXXXXX, _______, BASE_RIGHT
     ),
-    [_QWERTZ_ALT] = LAYOUT(
-        KC_6,    KC_7,    KC_8,    KC_9,    KC_0,    KC_DEL,
-        KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_BSPC,
-        KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, KC_QUOT,
-        KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH, KC_ENT,  BASE_LEFT,
-        KC_SPACE,KC_SPACE,KC_GUI,  KC_ALT,  KC_RCTL, KC_RSFT, BASE_RIGHT
-        
-    )
+	[_QWERTZ_ALT] = LAYOUT(
+        KC_6, KC_7, KC_8, KC_9, KC_0, KC_DEL,
+        KC_Y, KC_U, KC_I, KC_O, KC_P, KC_BSPC,
+        KC_H, KC_J, KC_K, KC_L, KC_SCLN, KC_QUOT,
+        KC_N, KC_M, KC_COMM, KC_DOT, KC_SLSH, KC_ENT, BASE_LEFT,
+        KC_SPACE, KC_SPACE, KC_RGUI, KC_RALT, KC_RCTL, KC_RSFT, BASE_RIGHT
+	)
 };
 
 layer_state_t layer_state_set_user(layer_state_t state) {
@@ -387,25 +324,33 @@ layer_state_t layer_state_set_user(layer_state_t state) {
         is_tab_switching = false;
     }
 
+    state =  update_tri_layer_state(state, _LOWER, _RAISE, _ADJUST);
+
     current_layer = get_highest_layer(state);
 
-    return update_tri_layer_state(state, _LOWER, _RAISE, _ADJUST);
+    uint8_t data[RAW_EPSIZE];
+    data[0] = 1;
+    data[1] = (uint8_t)((state & 0xFF00) >> 8);
+    data[2] = (uint8_t)(state & 0x00FF);
+    raw_hid_send(data, sizeof data);
+
+    return state;
 }
- 
+
 /* various helpers to extract repeating code */
 bool custom_sendstring_hold(keyrecord_t *record, const char *tapstr, const char *holdstr) {
     if (record->event.pressed) {
         if (record->tap.count) {
-            SEND_STRING(tapstr);
+            send_string(tapstr);
         } else {
-            SEND_STRING(holdstr);
+            send_string(holdstr);
         }
     }
     return false;
 }
 
 bool custom_sendstring(keyrecord_t *record, const char *tapstr) {
-    if (record->event.pressed) SEND_STRING(tapstr);
+    if (record->event.pressed) send_string(tapstr);
     return false;
 }
 
@@ -427,7 +372,7 @@ bool custom_tap(keyrecord_t *record, uint16_t tapcode) {
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     if (swap_hands) {
-        keycode = keymaps[current_layer + _BASE_ALT][record->event.key.row][5 - record->event.key.col]
+        keycode = keymaps[current_layer + _BASE_ALT][record->event.key.row][5 - record->event.key.col];
     }
     // unregister gui / alt / ctrl from GUI/ALT/CTL-Tab
     if (record->event.pressed) {
@@ -491,7 +436,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 return custom_tap(record, S(KC_ENTER));
         }
     }
-    
+
     switch (keycode) {
         // custom tap / hold keycodes
         // next window, fullscreen
@@ -590,11 +535,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             if (record->event.pressed) {
                 if (!record->tap.count) {
                     swap_hands = true;
-                    rgb_set_all(current_rgb_layer);
                 }
             } else {
                 swap_hands = false;
-                rgb_set_all(current_rgb_layer);
             }
             return false;
         case BASE_MAC:
@@ -607,7 +550,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case BASE_RIGHT:
             return false;
 
-            
         // Special trackball keys
         case MS_SCRL:
             if (record->event.pressed) {
@@ -617,14 +559,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             return false;
         case MS_DPI:
             if (record->event.pressed) {
-                tap_code16(KC_CAPS_LOCK);
-                tap_code16(KC_CAPS_LOCK);
-            }
-            return false;
-        case MS_RESET:
-            if (record->event.pressed) {
-                tap_code16(KC_NUM_LOCK);
-                tap_code16(KC_NUM_LOCK);
                 tap_code16(KC_CAPS_LOCK);
                 tap_code16(KC_CAPS_LOCK);
             }
@@ -640,5 +574,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 }
 
 void raw_hid_receive(uint8_t *data, uint8_t length) {
-    raw_hid_send(data, length);
+    if (data[0] == 1) {
+        layer_state = (data[1] << 8) | data[2];
+    } else {
+        raw_hid_send(data, length);
+    }
 }

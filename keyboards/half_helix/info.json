@@ -2,7 +2,7 @@
     "manufacturer": "Steffen Matheis",
     "keyboard_name": "half_helix",
     "maintainer": "smatheis",
-    "bootloader": "atmel-dfu",
+    "bootloader": "caterina",
     "diode_direction": "COL2ROW",
     "features": {
         "bootmagic": true,
